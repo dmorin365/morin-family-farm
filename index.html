@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#3d2b1f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Morin Farm">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Morin Family Farm</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #f5f0e8;
+    --brown: #3d2b1f;
+    --green: #4a6741;
+    --rust: #b85c2a;
+    --gold: #c9972e;
+    --red: #c0392b;
+    --tan: #d4b896;
+    --blue: #2980b9;
+    --purple: #7b5ea7;
+  }
+
+  body { font-family: 'Lato', sans-serif; background: var(--cream); color: var(--brown); min-height: 100vh; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; }
+
+  /* ARRIVAL BANNER */
+  #arrivalBanner {
+    display: none;
+    background: linear-gradient(135deg, #4a6741, #3a5234);
+    color: white;
+    padding: 16px 20px;
+    text-align: center;
+    animation: slideDown 0.4s ease;
+  }
+  #arrivalBanner .ab-icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+  #arrivalBanner strong { font-size: 1rem; font-family: 'Playfair Display', serif; display: block; margin-bottom: 2px; }
+  #arrivalBanner span { font-size: 0.82rem; opacity: 0.85; }
+  @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+
+  /* INSTALL PROMPT */
+  #installPrompt {
+    display: none;
+    background: var(--brown);
+    color: var(--cream);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
+  }
+  #installPrompt.hidden { display: none !important; }
+  #installPrompt .ip-text { font-size: 0.85rem; flex: 1; }
+  #installPrompt .ip-text strong { display: block; font-size: 0.9rem; margin-bottom: 2px; }
+  #installPrompt .ip-btns { display: flex; gap: 8px; flex-shrink: 0; }
+  .ip-btn {
+    padding: 7px 14px; border-radius: 3px; font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; border: none; font-family: 'Lato', sans-serif;
+  }
+  .ip-btn.primary { background: var(--gold); color: var(--brown); }
+  .ip-btn.dismiss { background: transparent; color: var(--tan); border: 1px solid var(--tan); }
+
+  header {
+    background: var(--brown); color: var(--cream);
+    text-align: center; padding: 40px 20px 32px;
+    position: relative; overflow: hidden;
+  }
+  header::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 6px;
+    background: repeating-linear-gradient(90deg, var(--gold) 0, var(--gold) 12px, var(--brown) 12px, var(--brown) 20px);
+  }
+  .farm-icon { font-size: 3rem; margin-bottom: 8px; display: block; }
+  header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: 0.03em; line-height: 1.1; }
+  header p { margin-top: 6px; font-weight: 300; font-size: 1rem; opacity: 0.75; letter-spacing: 0.15em; text-transform: uppercase; }
+
+  nav { display: flex; justify-content: center; background: var(--brown); padding: 0 20px; flex-wrap: wrap; }
+  nav button {
+    background: none; border: none; color: var(--tan);
+    font-family: 'Lato', sans-serif; font-size: 0.85rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 14px 22px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s;
+  }
+  nav button.active, nav button:hover { color: var(--cream); border-bottom-color: var(--gold); }
+
+  main { max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .card {
+    background: white; border-radius: 4px;
+    box-shadow: 0 2px 16px rgba(61,43,31,0.08), 0 1px 3px rgba(61,43,31,0.1);
+    padding: 32px; margin-bottom: 24px; border-top: 4px solid var(--green);
+  }
+  .card.rust { border-top-color: var(--rust); }
+  .card.gold { border-top-color: var(--gold); }
+  .card.red  { border-top-color: var(--red); }
+  .card.purple { border-top-color: var(--purple); }
+  .card h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+  label {
+    display: block; font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--green);
+    margin-bottom: 6px; margin-top: 18px;
+  }
+  label:first-of-type { margin-top: 0; }
+
+  input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    width: 100%; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 3px;
+    font-family: 'Lato', sans-serif; font-size: 0.95rem; background: var(--cream); color: var(--brown); transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green); background: white; }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width:480px) { .status-grid { grid-template-columns: 1fr; } }
+
+  .status-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; border: 1.5px solid #e0d8ce; border-radius: 3px; background: var(--cream); gap: 12px;
+  }
+  .status-label { font-size: 0.9rem; font-weight: 700; }
+
+  .toggle-group { display: flex; }
+  .toggle-group label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.8rem; font-weight: 400; color: inherit; }
+  .toggle-group input[type="radio"] { display: none; }
+  .toggle-group .tog {
+    padding: 5px 10px; border: 1.5px solid #ccc; cursor: pointer;
+    font-size: 0.75rem; font-weight: 700; transition: all 0.15s; user-select: none; background: white; color: #999;
+  }
+  .toggle-group .tog:first-of-type { border-radius: 3px 0 0 3px; border-right: none; }
+  .toggle-group .tog:last-of-type  { border-radius: 0 3px 3px 0; }
+  .toggle-group input[type="radio"]:checked + .tog.ok    { background: var(--green);  color: white; border-color: var(--green); }
+  .toggle-group input[type="radio"]:checked + .tog.issue { background: var(--red);    color: white; border-color: var(--red); }
+  .toggle-group input[type="radio"]:checked + .tog.yes   { background: var(--blue);   color: white; border-color: var(--blue); }
+  .toggle-group input[type="radio"]:checked + .tog.no    { background: #888;          color: white; border-color: #888; }
+  .toggle-group input[type="radio"]:checked + .tog.na    { background: #bbb;          color: white; border-color: #bbb; }
+
+  /* BEDS */
+  .beds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width:560px) { .beds-grid { grid-template-columns: 1fr; } }
+
+  .bed-card {
+    border: 1.5px solid #e0d8ce; border-radius: 6px; padding: 16px; background: var(--cream);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .bed-card:hover { border-color: var(--green); box-shadow: 0 2px 8px rgba(74,103,65,0.12); }
+  .bed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+  .bed-number {
+    background: var(--brown); color: var(--cream); font-size: 0.7rem; font-weight: 700;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .bed-emoji { font-size: 1.2rem; }
+  .bed-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; line-height: 1.2; }
+  .bed-actions { display: flex; flex-direction: column; gap: 8px; }
+  .bed-action-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .bed-action-label { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #999; white-space: nowrap; }
+  .bed-notes-area { margin-top: 10px; }
+  .bed-notes-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #bbb; margin-bottom: 4px; display: block; margin-top: 0; }
+  .bed-notes-area textarea { min-height: 50px; font-size: 0.85rem; padding: 8px 10px; background: white; }
+
+  /* ISSUES */
+  .issue-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+  .issue-row select { flex: 0 0 150px; }
+  .issue-row textarea { flex: 1; min-height: 56px; }
+  .remove-btn {
+    background: none; border: 1.5px solid #ddd; border-radius: 3px; cursor: pointer;
+    font-size: 1.1rem; color: var(--red); padding: 8px 10px; line-height: 1;
+    transition: all 0.15s; flex-shrink: 0; margin-top: 2px;
+  }
+  .remove-btn:hover { background: var(--red); color: white; border-color: var(--red); }
+
+  .add-btn {
+    background: none; border: 1.5px dashed var(--green); color: var(--green);
+    font-family: 'Lato', sans-serif; font-size: 0.85rem; font-weight: 700;
+    padding: 9px 18px; border-radius: 3px; cursor: pointer; margin-top: 4px; transition: all 0.15s;
+  }
+  .add-btn:hover { background: var(--green); color: white; }
+
+  .submit-btn {
+    width: 100%; background: var(--green); color: white; border: none;
+    font-family: 'Playfair Display', serif; font-size: 1.2rem; font-style: italic;
+    padding: 18px; border-radius: 3px; cursor: pointer; transition: background 0.2s; margin-top: 8px;
+  }
+  .submit-btn:hover { background: #3a5234; }
+  .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  .flash {
+    display: none; padding: 16px 24px; border-radius: 4px; text-align: center;
+    margin-bottom: 20px; font-weight: 700; font-size: 1rem; animation: fadeIn 0.3s ease;
+  }
+  .flash.success { background: var(--green); color: white; }
+  .flash.error   { background: var(--red);   color: white; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+
+  /* REPORT LOG */
+  .report-card {
+    background: white; border-radius: 4px; box-shadow: 0 2px 12px rgba(61,43,31,0.07);
+    padding: 24px 28px; margin-bottom: 20px; border-left: 5px solid var(--green);
+  }
+  .report-card.has-issues { border-left-color: var(--rust); }
+  .report-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .report-who  { font-family: 'Playfair Display', serif; font-size: 1.2rem; }
+  .report-date { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 0.08em; }
+  .report-section { margin-top: 14px; }
+  .report-section h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; margin-bottom: 8px; }
+  .issue-list { list-style: none; }
+  .issue-list li { padding: 8px 10px; background: #fff8f6; border-left: 3px solid var(--rust); margin-bottom: 6px; font-size: 0.9rem; border-radius: 0 3px 3px 0; }
+  .issue-list li .cat { font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; color: var(--rust); display: block; margin-bottom: 2px; }
+  .bed-log-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 8px; }
+  .bed-log-item { border: 1px solid #e8e0d5; border-radius: 4px; padding: 10px 12px; background: var(--cream); }
+  .bed-log-item .bli-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; }
+  .bed-log-item .bli-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .bli-pill { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; }
+  .bli-pill.watered   { background: #deeef9; color: var(--blue); }
+  .bli-pill.harvested { background: #e8f3e6; color: var(--green); }
+  .bli-pill.not-watered, .bli-pill.not-harvested { background: #f0ece5; color: #aaa; }
+  .bli-notes { margin-top: 5px; font-size: 0.78rem; color: #888; font-style: italic; }
+  .report-notes { margin-top: 10px; padding: 10px 14px; background: var(--cream); border-radius: 3px; font-size: 0.9rem; font-style: italic; color: #666; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: #bbb; }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; display: block; }
+  .empty-state p { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic; }
+  .loading { text-align: center; padding: 40px; color: #aaa; font-style: italic; font-family: 'Playfair Display', serif; }
+  .loading::after { content: ''; display: inline-block; width: 20px; height: 20px; border: 2px solid #ddd; border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 10px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width:480px) { .row2 { grid-template-columns: 1fr; } }
+
+  #setupBanner { background: #fff3cd; border: 1.5px solid #f0c040; border-radius: 4px; padding: 16px 20px; margin-bottom: 24px; font-size: 0.9rem; color: #7a5800; display: flex; align-items: flex-start; gap: 12px; }
+  #setupBanner span { font-size: 1.3rem; flex-shrink: 0; }
+
+  /* PHOTOS */
+  #dropZone {
+    border: 2px dashed #d0c8bc; border-radius: 6px; padding: 36px 20px;
+    text-align: center; cursor: pointer; transition: all 0.2s; background: var(--cream);
+    display: block; width: 100%;
+  }
+  #dropZone.dragover { border-color: var(--green); background: #f0f5ef; }
+  .drop-icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .drop-text  { font-size: 0.95rem; color: #888; margin-bottom: 4px; }
+  .drop-link  { color: var(--green); font-weight: 700; cursor: pointer; text-decoration: underline; }
+  .drop-sub   { font-size: 0.78rem; color: #bbb; }
+  #photoPreviewGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; }
+  .photo-thumb { position: relative; border-radius: 4px; overflow: hidden; aspect-ratio: 1; background: #eee; }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-thumb .remove-photo {
+    position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.55); color: white;
+    border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.75rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+  }
+  .photo-thumb .remove-photo:hover { background: var(--red); }
+  .photo-thumb .photo-name { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.45); color: white; font-size: 0.65rem; padding: 3px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .report-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 10px; }
+  .report-photo { border-radius: 4px; overflow: hidden; aspect-ratio: 1; cursor: pointer; }
+  .report-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.15s; }
+  .report-photo img:hover { opacity: 0.85; }
+
+  /* LIGHTBOX */
+  #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000; align-items: center; justify-content: center; cursor: pointer; }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 92vw; max-height: 90vh; border-radius: 4px; object-fit: contain; }
+  #lightbox .close-lb { position: absolute; top: 18px; right: 22px; color: white; font-size: 1.8rem; cursor: pointer; }
+
+  /* SETTINGS */
+  .settings-card { background: white; border-radius: 4px; box-shadow: 0 2px 16px rgba(61,43,31,0.08); padding: 32px; margin-bottom: 24px; }
+  .settings-card h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 8px; }
+  .settings-card p { font-size: 0.9rem; color: #777; margin-bottom: 20px; line-height: 1.6; }
+  .url-input-row { display: flex; gap: 10px; }
+  .url-input-row input { flex: 1; }
+  .save-url-btn { background: var(--brown); color: white; border: none; padding: 10px 20px; border-radius: 3px; font-family: 'Lato', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+  .save-url-btn:hover { background: #5a3e2e; }
+  .connected-badge     { display: inline-flex; align-items: center; gap: 6px; background: #e8f3e6; color: var(--green); font-size: 0.8rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-top: 10px; }
+  .not-connected-badge { display: inline-flex; align-items: center; gap: 6px; background: #fdecea; color: var(--red);   font-size: 0.8rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-top: 10px; }
+  .step { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .step-num { background: var(--brown); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; margin-top: 2px; }
+  .step-body { flex: 1; }
+  .step-body strong { display: block; margin-bottom: 4px; font-size: 0.95rem; }
+  .step-body p { font-size: 0.88rem; color: #666; line-height: 1.6; margin: 0; }
+  .step-body code { background: #f0ece5; padding: 2px 6px; border-radius: 3px; font-size: 0.82rem; font-family: monospace; color: var(--rust); }
+  .step-body a { color: var(--green); font-weight: 700; }
+
+  /* Location status pill */
+  .loc-status { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-top: 10px; }
+  .loc-status.on  { background: #e8f3e6; color: var(--green); }
+  .loc-status.off { background: #f0ece5; color: #aaa; }
+  .loc-status.err { background: #fdecea; color: var(--red); }
+
+  .perm-btn {
+    background: var(--green); color: white; border: none; padding: 10px 20px;
+    border-radius: 3px; font-family: 'Lato', sans-serif; font-weight: 700; font-size: 0.9rem;
+    cursor: pointer; margin-top: 14px; transition: background 0.2s; display: inline-block;
+  }
+  .perm-btn:hover { background: #3a5234; }
+
+  /* Netlify deploy steps */
+  .deploy-card { background: #fafaf8; border: 1.5px solid #e0d8ce; border-radius: 6px; padding: 20px 24px; margin-top: 16px; }
+  .deploy-card h3 { font-family: 'Playfair Display', serif; font-size: 1rem; margin-bottom: 14px; color: var(--brown); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- Arrival banner (shown when GPS detects you're at the farm) -->
+<div id="arrivalBanner">
+  <span class="ab-icon">🌾</span>
+  <strong>Welcome to Morin Family Farm!</strong>
+  <span>You've arrived — the report form is ready below.</span>
+</div>
+
+<!-- Install to home screen prompt -->
+<div id="installPrompt" class="hidden">
+  <div class="ip-text">
+    <strong>Add to Home Screen</strong>
+    Install this app for quick access & arrival alerts
+  </div>
+  <div class="ip-btns">
+    <button class="ip-btn primary" onclick="installApp()">Install</button>
+    <button class="ip-btn dismiss" onclick="dismissInstall()">Later</button>
+  </div>
+</div>
+
+<header>
+  <span class="farm-icon">🌾</span>
+  <h1>Morin Family Farm</h1>
+  <p>Hartwell, Georgia · 40 acres · 25 chickens · 10 garden beds</p>
+  <p style="font-size:0.7rem;opacity:0.5;margin-top:4px;letter-spacing:0.05em;">v2 ✓</p>
+</header>
+
+<nav>
+  <button class="active" onclick="switchTab('report', this)">📋 Report</button>
+  <button onclick="switchTab('log', this)">📖 Log</button>
+  <button onclick="switchTab('setup', this)">⚙️ Setup</button>
+</nav>
+
+<main>
+
+  <!-- ── REPORT TAB ── -->
+  <div id="tab-report" class="tab-content active">
+    <div id="flash" class="flash"></div>
+    <div id="setupBanner" style="display:none;">
+      <span>⚠️</span>
+      <div>Reports aren't syncing yet. Go to the <strong>Setup tab</strong> to connect your Google Sheet.</div>
+    </div>
+
+    <form id="reportForm" onsubmit="submitReport(event)">
+
+      <div class="card">
+        <h2>👤 Who's Checking In?</h2>
+        <div class="row2">
+          <div>
+            <label>Your Name</label>
+            <input type="text" id="visitor" placeholder="e.g. Jean, Marc..." required>
+          </div>
+          <div>
+            <label>Date of Visit</label>
+            <input type="date" id="visitDate" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rust">
+        <h2>🐔 Chickens</h2>
+        <div class="row2">
+          <div>
+            <label>Chickens Counted</label>
+            <input type="number" id="chickenCount" min="0" max="100" placeholder="25">
+          </div>
+          <div>
+            <label>Eggs Collected</label>
+            <input type="number" id="eggCount" min="0" placeholder="0">
+          </div>
+        </div>
+        <label>Coop & Chicken Notes</label>
+        <textarea id="chickenNotes" placeholder="e.g. 2 chickens seem lethargic, hole found in south wall of coop..."></textarea>
+        <div class="row2" style="margin-top:18px;">
+          <div>
+            <label>Feed Left in Feeder</label>
+            <div style="position:relative;">
+              <input type="number" id="chickenFeedPct" min="0" max="100" placeholder="e.g. 75" style="padding-right:36px;">
+              <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#999;font-weight:700;font-size:0.9rem;pointer-events:none;">%</span>
+            </div>
+          </div>
+          <div>
+            <label>Extra Bags in Shed</label>
+            <input type="number" id="chickenExtraBags" min="0" placeholder="e.g. 3">
+          </div>
+        </div>
+      </div>
+
+      <div class="card purple">
+        <h2>🐐 Goats & 🐷 Pigs</h2>
+        <div class="status-grid">
+          <div class="status-item">
+            <span class="status-label">💧 Goats Have Water?</span>
+            <div class="toggle-group">
+              <input type="radio" name="goatWater" id="goatWater-yes" value="yes" checked>
+              <label class="tog ok" for="goatWater-yes">✓ Yes</label>
+              <input type="radio" name="goatWater" id="goatWater-no" value="no">
+              <label class="tog issue" for="goatWater-no">✗ No</label>
+            </div>
+          </div>
+          <div class="status-item">
+            <span class="status-label">🌾 Goats Have Hay?</span>
+            <div class="toggle-group">
+              <input type="radio" name="goatHay" id="goatHay-yes" value="yes" checked>
+              <label class="tog ok" for="goatHay-yes">✓ Yes</label>
+              <input type="radio" name="goatHay" id="goatHay-no" value="no">
+              <label class="tog issue" for="goatHay-no">✗ No</label>
+            </div>
+          </div>
+          <div class="status-item">
+            <span class="status-label">❤️ Goats Healthy?</span>
+            <div class="toggle-group">
+              <input type="radio" name="goatHealth" id="goatHealth-yes" value="yes" checked>
+              <label class="tog ok" for="goatHealth-yes">✓ Yes</label>
+              <input type="radio" name="goatHealth" id="goatHealth-no" value="no">
+              <label class="tog issue" for="goatHealth-no">✗ No</label>
+            </div>
+          </div>
+          <div class="status-item">
+            <span class="status-label">❤️ Pigs Healthy?</span>
+            <div class="toggle-group">
+              <input type="radio" name="pigHealth" id="pigHealth-yes" value="yes" checked>
+              <label class="tog ok" for="pigHealth-yes">✓ Yes</label>
+              <input type="radio" name="pigHealth" id="pigHealth-no" value="no">
+              <label class="tog issue" for="pigHealth-no">✗ No</label>
+            </div>
+          </div>
+        </div>
+        <label>Goat & Pig Notes</label>
+        <textarea id="livestockNotes" placeholder="e.g. one goat limping, pigs seem restless, fence near pig pen needs repair..."></textarea>
+      </div>
+
+      <div class="card gold">
+        <h2>🌱 Garden Beds</h2>
+        <p style="font-size:0.88rem;color:#888;margin-bottom:20px;line-height:1.6;">For each bed, log whether you watered and/or harvested, then add any observations.</p>
+        <div class="beds-grid" id="bedsGrid"></div>
+      </div>
+
+      <div class="card red">
+        <h2>⚠️ Specific Issues Found</h2>
+        <p style="font-size:0.9rem;color:#888;margin-bottom:16px;">Log anything that needs attention or follow-up.</p>
+        <div id="issueList"></div>
+        <button type="button" class="add-btn" onclick="addIssue()">+ Add an Issue</button>
+      </div>
+
+      <div class="card">
+        <h2>📝 General Notes</h2>
+        <textarea id="generalNotes" placeholder="Anything else the family should know about this visit..."></textarea>
+      </div>
+
+      <div class="card">
+        <h2>📸 Photos</h2>
+        <p style="font-size:0.88rem;color:#888;margin-bottom:16px;line-height:1.6;">Drop photos from your visit — animals, garden beds, any issues found.</p>
+        <label for="photoInput" id="dropZone">
+          <div class="drop-icon">📷</div>
+          <div class="drop-text">Tap to add photos from your camera or library</div>
+          <div class="drop-sub">JPG, PNG, HEIC supported</div>
+          <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoFiles(this.files)">
+        </label>
+        <div id="photoPreviewGrid"></div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Save Visit Report →</button>
+    </form>
+  </div>
+
+  <!-- ── LOG TAB ── -->
+  <div id="tab-log" class="tab-content">
+    <div id="reportLog"><div class="loading">Loading reports</div></div>
+  </div>
+
+  <!-- ── SETUP TAB ── -->
+  <div id="tab-setup" class="tab-content">
+
+    <!-- Location & Notifications -->
+    <div class="settings-card">
+      <h2>📍 Location & Arrival Alerts</h2>
+      <p>Allow location access so the app can detect when you arrive at the farm and show a welcome prompt. Your location is never stored or shared — it's only checked on your device.</p>
+      <div id="locationStatus"><div class="loc-status off">📍 Location not enabled</div></div>
+      <br>
+      <button class="perm-btn" onclick="requestLocation()">Enable Location Access</button>
+      <br><br>
+      <p style="font-size:0.82rem;color:#aaa;margin-bottom:0;">The farm is set to <strong>34.39917, -82.94344</strong>. The app will greet you when you're within ½ mile.</p>
+    </div>
+
+    <!-- Google Sheets -->
+    <div class="settings-card">
+      <h2>🔗 Connect to Google Sheets</h2>
+      <p>One-time setup — any family member can do it. Reports sync to your shared Google Sheet.</p>
+      <div id="connectionStatus"></div>
+      <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+      <h3 style="font-family:'Playfair Display',serif;margin-bottom:16px;font-size:1.1rem;">Step-by-step</h3>
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Create a new Google Sheet</strong><p>Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a>, create a blank spreadsheet named <em>"Morin Family Farm Reports"</em>, and share it with all family members.</p></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Open Apps Script</strong><p>In the sheet, click <code>Extensions</code> → <code>Apps Script</code>.</p></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Paste the script</strong><p>Delete everything in the editor, paste the entire <strong>morin-farm-script.gs</strong> file, and save.</p></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Deploy as Web App</strong><p>Click <code>Deploy</code> → <code>New deployment</code> → type: <code>Web app</code>. Set <strong>Execute as: Me</strong> and <strong>Access: Anyone</strong>. Deploy and authorize.</p></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><strong>Paste your Web App URL below</strong><p>Share the same URL with other family members — they paste it in their own Setup tab.</p></div></div>
+      <label style="margin-top:20px;">Google Apps Script Web App URL</label>
+      <div class="url-input-row">
+        <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/...">
+        <button class="save-url-btn" onclick="saveScriptUrl()">Save & Test</button>
+      </div>
+      <div id="urlStatus"></div>
+    </div>
+
+    <!-- Deploy to Netlify -->
+    <div class="settings-card">
+      <h2>🚀 Host on Netlify (for PWA features)</h2>
+      <p>To get the "Add to Home Screen" button and arrival notifications, the app needs to be hosted at a real URL. Netlify is free and takes about 5 minutes.</p>
+      <div class="deploy-card">
+        <h3>How to deploy to Netlify</h3>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Create a free Netlify account</strong><p>Go to <a href="https://netlify.com" target="_blank">netlify.com</a> and sign up with your Google account.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Drag & drop your files</strong><p>Go to <a href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a> and drag the entire folder containing <code>index.html</code>, <code>manifest.json</code>, and <code>service-worker.js</code> into the drop zone.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Get your URL</strong><p>Netlify gives you a free URL like <code>morin-farm-abc123.netlify.app</code>. Share that URL with the family — everyone visits it once and taps "Add to Home Screen."</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Optional: custom name</strong><p>In Netlify settings you can rename it to something like <code>morinfamilyfarm.netlify.app</code> for free.</p></div></div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()">
+  <span class="close-lb">✕</span>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const FARM_LAT = 34.39917;
+const FARM_LNG = -82.94344;
+const GEOFENCE_MILES = 0.5;
+
+const BEDS = [
+  { id:1,  emoji:'🍅', name:'Cherry Tomatoes' },
+  { id:2,  emoji:'🫑', name:'Bell Peppers' },
+  { id:3,  emoji:'🥒', name:'Cucumbers' },
+  { id:4,  emoji:'🍓', name:'Strawberries' },
+  { id:5,  emoji:'🫐', name:'Blueberries' },
+  { id:6,  emoji:'🥕', name:'Carrots' },
+  { id:7,  emoji:'🧅', name:'Sweet Onions' },
+  { id:8,  emoji:'🌿', name:'Herb Mix' },
+  { id:9,  emoji:'🥬', name:'Collard Greens' },
+  { id:10, emoji:'🎃', name:'Butternut Squash' },
+];
+
+// ── PWA: Service Worker ────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+}
+
+// ── PWA: Install prompt ────────────────────────────────────────────────────
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (!localStorage.getItem('installDismissed')) {
+    document.getElementById('installPrompt').classList.remove('hidden');
+  }
+});
+function installApp() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(() => {
+    deferredInstallPrompt = null;
+    document.getElementById('installPrompt').classList.add('hidden');
+  });
+}
+function dismissInstall() {
+  localStorage.setItem('installDismissed', '1');
+  document.getElementById('installPrompt').classList.add('hidden');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Set today's date
+  document.getElementById('visitDate').value = new Date().toLocaleDateString('en-CA');
+
+  // Pre-fill name from memory
+  const savedName = localStorage.getItem('morin_visitor_name');
+  if (savedName) document.getElementById('visitor').value = savedName;
+
+  buildBedsGrid();
+
+  const savedUrl = localStorage.getItem('morin_script_url') || '';
+  if (savedUrl) document.getElementById('scriptUrl').value = savedUrl;
+  updateConnectionStatus();
+  updateSetupBanner();
+
+  // Check location permission state
+  if (navigator.permissions) {
+    navigator.permissions.query({ name: 'geolocation' }).then(result => {
+      if (result.state === 'granted') startGeofenceWatch();
+    });
+  }
+});
+
+// Save name as user types
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('visitor').addEventListener('blur', e => {
+    if (e.target.value) localStorage.setItem('morin_visitor_name', e.target.value);
+  });
+});
+
+// ── Geolocation & Geofence ─────────────────────────────────────────────────
+let geoWatchId = null;
+let arrivalShown = false;
+
+function requestLocation() {
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      updateLocationStatus('on', '📍 Location enabled');
+      startGeofenceWatch();
+      checkArrival(pos.coords.latitude, pos.coords.longitude);
+    },
+    err => {
+      updateLocationStatus('err', '❌ Location access denied — check your browser settings');
+    },
+    { enableHighAccuracy: true }
+  );
+}
+
+function startGeofenceWatch() {
+  if (geoWatchId !== null) return;
+  geoWatchId = navigator.geolocation.watchPosition(
+    pos => checkArrival(pos.coords.latitude, pos.coords.longitude),
+    () => {},
+    { enableHighAccuracy: true, maximumAge: 60000, timeout: 30000 }
+  );
+  updateLocationStatus('on', '📍 Location active — watching for farm arrival');
+}
+
+function checkArrival(lat, lng) {
+  const dist = haversineDistance(lat, lng, FARM_LAT, FARM_LNG);
+  if (dist <= GEOFENCE_MILES && !arrivalShown) {
+    arrivalShown = true;
+    document.getElementById('arrivalBanner').style.display = 'block';
+    // Switch to report tab if not already there
+    switchTab('report', document.querySelector('nav button'));
+  }
+}
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 3958.8;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function toRad(deg) { return deg * Math.PI / 180; }
+
+function updateLocationStatus(state, msg) {
+  document.getElementById('locationStatus').innerHTML =
+    `<div class="loc-status ${state}">${msg}</div>`;
+}
+
+// ── Tab nav ────────────────────────────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (tab === 'log') renderLog();
+}
+
+function updateSetupBanner() {
+  document.getElementById('setupBanner').style.display =
+    localStorage.getItem('morin_script_url') ? 'none' : 'flex';
+}
+
+function updateConnectionStatus() {
+  const url = localStorage.getItem('morin_script_url');
+  document.getElementById('connectionStatus').innerHTML = url
+    ? `<div class="connected-badge">✅ Connected to Google Sheets</div>`
+    : `<div class="not-connected-badge">⚠️ Not connected yet</div>`;
+}
+
+// ── Garden Beds ────────────────────────────────────────────────────────────
+function buildBedsGrid() {
+  document.getElementById('bedsGrid').innerHTML = BEDS.map(bed => `
+    <div class="bed-card">
+      <div class="bed-header">
+        <div class="bed-number">${bed.id}</div>
+        <span class="bed-emoji">${bed.emoji}</span>
+        <div class="bed-name">${bed.name}</div>
+      </div>
+      <div class="bed-actions">
+        <div class="bed-action-row">
+          <span class="bed-action-label">💧 Watered?</span>
+          <div class="toggle-group">
+            <input type="radio" name="bed${bed.id}_water" id="b${bed.id}w-yes" value="yes">
+            <label class="tog yes" for="b${bed.id}w-yes">Yes</label>
+            <input type="radio" name="bed${bed.id}_water" id="b${bed.id}w-no" value="no">
+            <label class="tog no" for="b${bed.id}w-no">No</label>
+            <input type="radio" name="bed${bed.id}_water" id="b${bed.id}w-na" value="na" checked>
+            <label class="tog na" for="b${bed.id}w-na">N/A</label>
+          </div>
+        </div>
+        <div class="bed-action-row">
+          <span class="bed-action-label">🌾 Harvested?</span>
+          <div class="toggle-group">
+            <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}h-yes" value="yes">
+            <label class="tog yes" for="b${bed.id}h-yes">Yes</label>
+            <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}h-no" value="no">
+            <label class="tog no" for="b${bed.id}h-no">No</label>
+            <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}h-na" value="na" checked>
+            <label class="tog na" for="b${bed.id}h-na">N/A</label>
+          </div>
+        </div>
+      </div>
+      <div class="bed-notes-area">
+        <span class="bed-notes-label">Notes</span>
+        <textarea id="bed${bed.id}_notes" placeholder="e.g. aphids spotted, ready to harvest next visit..."></textarea>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Issue rows ─────────────────────────────────────────────────────────────
+function addIssue() {
+  const div = document.createElement('div');
+  div.className = 'issue-row';
+  div.innerHTML = `
+    <select>
+      <option value="">Category</option>
+      <option>Chickens</option><option>Garden</option><option>Goats</option>
+      <option>Pigs</option><option>Water</option><option>Power</option>
+      <option>Fencing</option><option>Structures</option><option>Pests</option>
+      <option>Equipment</option><option>Other</option>
+    </select>
+    <textarea placeholder="Describe the issue..."></textarea>
+    <button type="button" class="remove-btn" onclick="this.parentElement.remove()">✕</button>
+  `;
+  document.getElementById('issueList').appendChild(div);
+}
+
+function getRadio(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────
+async function submitReport(e) {
+  e.preventDefault();
+  const scriptUrl = localStorage.getItem('morin_script_url');
+  if (!scriptUrl) { showFlash('⚠️ Connect your Google Sheet in the Setup tab first.', 'error'); return; }
+
+  // Save name for next time
+  const visitorName = document.getElementById('visitor').value;
+  if (visitorName) localStorage.setItem('morin_visitor_name', visitorName);
+
+  const beds = BEDS.map(bed => ({
+    id: bed.id, name: bed.name, emoji: bed.emoji,
+    watered: getRadio(`bed${bed.id}_water`),
+    harvested: getRadio(`bed${bed.id}_harvest`),
+    notes: document.getElementById(`bed${bed.id}_notes`).value.trim(),
+  }));
+
+  const issues = [];
+  document.querySelectorAll('.issue-row').forEach(row => {
+    const cat = row.querySelector('select').value;
+    const desc = row.querySelector('textarea').value.trim();
+    if (desc) issues.push({ cat: cat || 'Other', desc });
+  });
+
+  const report = {
+    action: 'addReport',
+    visitor: visitorName,
+    date: document.getElementById('visitDate').value,
+    chickenCount: document.getElementById('chickenCount').value || '',
+    eggCount: document.getElementById('eggCount').value || '',
+    chickenNotes: document.getElementById('chickenNotes').value || '',
+    chickenFeedPct: document.getElementById('chickenFeedPct').value || '',
+    chickenExtraBags: document.getElementById('chickenExtraBags').value || '',
+    goatWater: getRadio('goatWater'),
+    goatHay: getRadio('goatHay'),
+    goatHealth: getRadio('goatHealth'),
+    pigHealth: getRadio('pigHealth'),
+    livestockNotes: document.getElementById('livestockNotes').value || '',
+    beds: JSON.stringify(beds),
+    issues: JSON.stringify(issues),
+    generalNotes: document.getElementById('generalNotes').value || '',
+    photos: JSON.stringify(uploadedPhotos),
+  };
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch(scriptUrl + '?' + new URLSearchParams(report));
+    const json = await res.json();
+    if (json.status === 'ok') {
+      showFlash('✔ Report saved! The whole family can now see it.', 'success');
+      e.target.reset();
+      document.getElementById('visitor').value = localStorage.getItem('morin_visitor_name') || '';
+      document.getElementById('visitDate').value = new Date().toLocaleDateString('en-CA');
+      document.getElementById('issueList').innerHTML = '';
+      uploadedPhotos = [];
+      renderPhotoPreviews();
+      buildBedsGrid();
+    } else { throw new Error(json.message || 'Unknown error'); }
+  } catch (err) {
+    showFlash('❌ Could not save. Check your connection or Setup tab. (' + err.message + ')', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Save Visit Report →';
+}
+
+function showFlash(msg, type) {
+  const el = document.getElementById('flash');
+  el.textContent = msg; el.className = 'flash ' + type; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+// ── Render Log ─────────────────────────────────────────────────────────────
+function formatDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+async function renderLog() {
+  const container = document.getElementById('reportLog');
+  const scriptUrl = localStorage.getItem('morin_script_url');
+  if (!scriptUrl) {
+    container.innerHTML = `<div class="empty-state"><span class="icon">⚙️</span><p>Connect your Google Sheet in the Setup tab to see reports.</p></div>`;
+    return;
+  }
+  container.innerHTML = `<div class="loading">Loading reports</div>`;
+  try {
+    const res = await fetch(scriptUrl + '?action=getReports');
+    const json = await res.json();
+    const reports = json.reports || [];
+    if (!reports.length) {
+      container.innerHTML = `<div class="empty-state"><span class="icon">🌾</span><p>No reports yet. Be the first to check in!</p></div>`;
+      return;
+    }
+
+    container.innerHTML = reports.map(r => {
+      let beds = [];   try { beds   = JSON.parse(r.beds   || '[]'); } catch(e) {}
+      let issues = []; try { issues = JSON.parse(r.issues || '[]'); } catch(e) {}
+      let photos = []; try { photos = JSON.parse(r.photos || '[]'); } catch(e) {}
+      const hasIssues = issues.length > 0;
+
+      const issueHTML = issues.length ? `
+        <div class="report-section">
+          <h4>Issues Reported</h4>
+          <ul class="issue-list">${issues.map(i => `<li><span class="cat">${i.cat}</span>${i.desc}</li>`).join('')}</ul>
+        </div>` : '';
+
+      const chickenHTML = (r.chickenCount || r.eggCount || r.chickenNotes || r.chickenFeedPct || r.chickenExtraBags) ? `
+        <div class="report-section">
+          <h4>🐔 Chickens</h4>
+          <div style="font-size:0.9rem;color:#555;">
+            ${r.chickenCount ? `<strong>${r.chickenCount}</strong> chickens counted. ` : ''}
+            ${r.eggCount ? `<strong>${r.eggCount}</strong> eggs collected. ` : ''}
+            ${r.chickenFeedPct ? `Feed: <strong>${r.chickenFeedPct}%</strong> left. ` : ''}
+            ${r.chickenExtraBags ? `<strong>${r.chickenExtraBags}</strong> extra bag${r.chickenExtraBags == 1 ? '' : 's'} in shed. ` : ''}
+            ${r.chickenNotes ? `<br><em>${r.chickenNotes}</em>` : ''}
+          </div>
+        </div>` : '';
+
+      const yesNo = v => v === 'yes' ? '✓' : v === 'no' ? '✗' : '—';
+      const pill  = (v, label) => `<span style="font-size:0.8rem;font-weight:700;padding:3px 9px;border-radius:12px;background:${v==='yes'?'#e8f3e6':v==='no'?'#fdecea':'#f0ece5'};color:${v==='yes'?'#4a6741':v==='no'?'#c0392b':'#aaa'};">${label}: ${yesNo(v)}</span>`;
+      const livestockHTML = (r.goatWater || r.goatHay || r.goatHealth || r.pigHealth || r.livestockNotes) ? `
+        <div class="report-section">
+          <h4>🐐 Goats & 🐷 Pigs</h4>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+            ${r.goatWater  ? pill(r.goatWater,  '💧 Goat Water') : ''}
+            ${r.goatHay    ? pill(r.goatHay,    '🌾 Goat Hay')   : ''}
+            ${r.goatHealth ? pill(r.goatHealth, '❤️ Goats')      : ''}
+            ${r.pigHealth  ? pill(r.pigHealth,  '❤️ Pigs')       : ''}
+          </div>
+          ${r.livestockNotes ? `<div style="font-size:0.88rem;color:#666;font-style:italic;">${r.livestockNotes}</div>` : ''}
+        </div>` : '';
+
+      const activeBeds = beds.filter(b => b.watered !== 'na' || b.harvested !== 'na' || b.notes);
+      const bedsHTML = activeBeds.length ? `
+        <div class="report-section">
+          <h4>🌱 Garden Beds</h4>
+          <div class="bed-log-grid">
+            ${activeBeds.map(b => {
+              const wPill = b.watered   === 'yes' ? `<span class="bli-pill watered">💧 Watered</span>`     : b.watered   === 'no' ? `<span class="bli-pill not-watered">Not watered</span>` : '';
+              const hPill = b.harvested === 'yes' ? `<span class="bli-pill harvested">🌾 Harvested</span>` : b.harvested === 'no' ? `<span class="bli-pill not-harvested">Not harvested</span>` : '';
+              return `<div class="bed-log-item">
+                <div class="bli-name">${b.emoji} Bed ${b.id} · ${b.name}</div>
+                <div class="bli-pills">${wPill}${hPill}</div>
+                ${b.notes ? `<div class="bli-notes">${b.notes}</div>` : ''}
+              </div>`;
+            }).join('')}
+          </div>
+        </div>` : '';
+
+      const notesHTML  = r.generalNotes ? `<div class="report-notes">"${r.generalNotes}"</div>` : '';
+      const photosHTML = photos.length ? `
+        <div class="report-section">
+          <h4>📸 Photos (${photos.length})</h4>
+          <div class="report-photos">
+            ${photos.map(p => `<div class="report-photo" onclick="openLightbox('${p.dataUrl}')"><img src="${p.dataUrl}" alt="${p.name}"></div>`).join('')}
+          </div>
+        </div>` : '';
+
+      return `<div class="report-card ${hasIssues ? 'has-issues' : ''}">
+        <div class="report-meta">
+          <div class="report-who">${r.visitor}</div>
+          <div class="report-date">${formatDate(r.date) || r.date}</div>
+        </div>
+        ${issueHTML}${chickenHTML}${livestockHTML}${bedsHTML}${notesHTML}${photosHTML}
+      </div>`;
+    }).join('');
+  } catch(err) {
+    container.innerHTML = `<div class="empty-state"><span class="icon">❌</span><p>Could not load reports. Check your connection or Setup tab.</p></div>`;
+  }
+}
+
+// ── Save Script URL ────────────────────────────────────────────────────────
+async function saveScriptUrl() {
+  const url = document.getElementById('scriptUrl').value.trim();
+  const statusEl = document.getElementById('urlStatus');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    statusEl.innerHTML = `<div class="not-connected-badge" style="margin-top:10px;">❌ Doesn't look like a valid Apps Script URL</div>`;
+    return;
+  }
+  statusEl.innerHTML = `<div style="margin-top:10px;color:#aaa;font-size:0.85rem;font-style:italic;">Testing connection…</div>`;
+  try {
+    const res  = await fetch(url + '?action=getReports');
+    const json = await res.json();
+    if (json.status === 'ok') {
+      localStorage.setItem('morin_script_url', url);
+      statusEl.innerHTML = `<div class="connected-badge">✅ Connected successfully!</div>`;
+      updateConnectionStatus(); updateSetupBanner();
+    } else { throw new Error(); }
+  } catch(err) {
+    statusEl.innerHTML = `<div class="not-connected-badge" style="margin-top:10px;">❌ Could not connect. Double-check the URL and "Anyone" access setting.</div>`;
+  }
+}
+
+// ── Photos ─────────────────────────────────────────────────────────────────
+let uploadedPhotos = [];
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); handlePhotoFiles(e.dataTransfer.files); });
+
+function handlePhotoFiles(files) {
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => { uploadedPhotos.push({ name: file.name, dataUrl: e.target.result }); renderPhotoPreviews(); };
+    reader.readAsDataURL(file);
+  });
+}
+function renderPhotoPreviews() {
+  document.getElementById('photoPreviewGrid').innerHTML = uploadedPhotos.map((p, i) => `
+    <div class="photo-thumb">
+      <img src="${p.dataUrl}" alt="${p.name}">
+      <button type="button" class="remove-photo" onclick="removePhoto(${i})">✕</button>
+      <div class="photo-name">${p.name}</div>
+    </div>`).join('');
+}
+function removePhoto(i) { uploadedPhotos.splice(i, 1); renderPhotoPreviews(); }
+function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('open'); }
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+</script>
+</body>
+</html>

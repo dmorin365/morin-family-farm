@@ -1,0 +1,25 @@
+{
+  "name": "Morin Family Farm",
+  "short_name": "Morin Farm",
+  "description": "Visit reports for the Morin Family Farm in Hartwell, Georgia",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#3d2b1f",
+  "theme_color": "#3d2b1f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "utilities"]
+}
