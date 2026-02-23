@@ -481,61 +481,63 @@
     <div id="reportLog"><div class="loading">Loading reports</div></div>
   </div>
 
-  <!-- Setup link at bottom of page -->
-
 </main>
-</div>
 
-<!-- Setup section (hidden by default, revealed by clicking the small link) -->
-<div id="setupSection" style="display:none; max-width:860px; margin:0 auto; padding:20px;">
+  <!-- Admin footer stays inside .page wrapper so it's visible -->
+  <footer style="text-align:center; padding:24px 20px 20px; border-top:2px solid #e0d8ce; background:#f5f0e8;">
+    <button onclick="document.getElementById('setupSection').style.display = document.getElementById('setupSection').style.display === 'none' ? 'block' : 'none'"
+      style="background:#3d2b1f; border:none; color:#d4b896; font-size:0.8rem; font-family:'Lato',sans-serif; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; padding:10px 20px; border-radius:3px; font-weight:700;">
+      ⚙️ Admin Setup
+    </button>
 
-    <!-- Location & Notifications -->
-    <div class="settings-card">
-      <h2>📍 Location & Arrival Alerts</h2>
-      <p>Allow location access so the app can detect when you arrive at the farm and show a welcome prompt. Your location is never stored or shared — it's only checked on your device.</p>
-      <div id="locationStatus"><div class="loc-status off">📍 Location not enabled</div></div>
-      <br>
-      <button class="perm-btn" onclick="requestLocation()">Enable Location Access</button>
-      <br><br>
-      <p style="font-size:0.82rem;color:#aaa;margin-bottom:0;">The farm is set to <strong>34.39917, -82.94344</strong>. The app will greet you when you're within ½ mile.</p>
-      <!-- Google Sheets -->
-    <div class="settings-card">
-      <h2>🔗 Connect to Google Sheets</h2>
-      <p>One-time setup — any family member can do it. Reports sync to your shared Google Sheet.</p>
-      <div id="connectionStatus"></div>
-      <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
-      <h3 style="font-family:'Playfair Display',serif;margin-bottom:16px;font-size:1.1rem;">Step-by-step</h3>
-      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Create a new Google Sheet</strong><p>Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a>, create a blank spreadsheet named <em>"Morin Family Farm Reports"</em>, and share it with all family members.</p></div></div>
-      <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Open Apps Script</strong><p>In the sheet, click <code>Extensions</code> → <code>Apps Script</code>.</p></div></div>
-      <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Paste the script</strong><p>Delete everything in the editor, paste the entire <strong>morin-farm-script.gs</strong> file, and save.</p></div></div>
-      <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Deploy as Web App</strong><p>Click <code>Deploy</code> → <code>New deployment</code> → type: <code>Web app</code>. Set <strong>Execute as: Me</strong> and <strong>Access: Anyone</strong>. Deploy and authorize.</p></div></div>
-      <div class="step"><div class="step-num">5</div><div class="step-body"><strong>Paste your Web App URL below</strong><p>Share the same URL with other family members — they paste it in their own Setup tab.</p></div></div>
-      <label style="margin-top:20px;">Google Apps Script Web App URL</label>
-      <div class="url-input-row">
-        <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/...">
-        <button class="save-url-btn" onclick="saveScriptUrl()">Save & Test</button>
+    <!-- Setup panel (hidden by default) -->
+    <div id="setupSection" style="display:none; max-width:860px; margin:20px auto 0; text-align:left;">
+
+      <div class="settings-card">
+        <h2>📍 Location & Arrival Alerts</h2>
+        <p>Allow location access so the app can detect when you arrive at the farm and show a welcome prompt. Your location is never stored or shared — it's only checked on your device.</p>
+        <div id="locationStatus"><div class="loc-status off">📍 Location not enabled</div></div>
+        <br>
+        <button class="perm-btn" onclick="requestLocation()">Enable Location Access</button>
+        <br><br>
+        <p style="font-size:0.82rem;color:#aaa;margin-bottom:0;">The farm is set to <strong>34.39917, -82.94344</strong>. The app will greet you when you're within ½ mile.</p>
       </div>
-      <div id="urlStatus"></div>
-      <!-- Deploy to Netlify -->
-    <div class="settings-card">
-      <h2>🚀 Host on Netlify (for PWA features)</h2>
-      <p>To get the "Add to Home Screen" button and arrival notifications, the app needs to be hosted at a real URL. Netlify is free and takes about 5 minutes.</p>
-      <div class="deploy-card">
-        <h3>How to deploy to Netlify</h3>
-        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Create a free Netlify account</strong><p>Go to <a href="https://netlify.com" target="_blank">netlify.com</a> and sign up with your Google account.</p></div></div>
-        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Drag & drop your files</strong><p>Go to <a href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a> and drag the entire folder containing <code>index.html</code>, <code>manifest.json</code>, and <code>service-worker.js</code> into the drop zone.</p></div></div>
-        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Get your URL</strong><p>Netlify gives you a free URL like <code>morin-farm-abc123.netlify.app</code>. Share that URL with the family — everyone visits it once and taps "Add to Home Screen."</p></div></div>
-        <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Optional: custom name</strong><p>In Netlify settings you can rename it to something like <code>morinfamilyfarm.netlify.app</code> for free.</p></div></div>
-      </div>
-  
-</div>
 
-<footer style="text-align:center; padding:24px 20px 40px; border-top:2px solid #e0d8ce; margin-top:8px; background:#f5f0e8;">
-  <button onclick="document.getElementById('setupSection').style.display = document.getElementById('setupSection').style.display === 'none' ? 'block' : 'none'" 
-    style="background:#3d2b1f; border:none; color:#d4b896; font-size:0.8rem; font-family:'Lato',sans-serif; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; padding:10px 20px; border-radius:3px; font-weight:700;">
-    ⚙️ Admin Setup
-  </button>
-</footer>
+      <div class="settings-card">
+        <h2>🔗 Connect to Google Sheets</h2>
+        <p>One-time setup — any family member can do it. Reports sync to your shared Google Sheet.</p>
+        <div id="connectionStatus"></div>
+        <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+        <h3 style="font-family:'Playfair Display',serif;margin-bottom:16px;font-size:1.1rem;">Step-by-step</h3>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Create a new Google Sheet</strong><p>Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a>, create a blank spreadsheet named <em>"Morin Family Farm Reports"</em>, and share it with all family members.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Open Apps Script</strong><p>In the sheet, click <code>Extensions</code> → <code>Apps Script</code>.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Paste the script</strong><p>Delete everything in the editor, paste the entire <strong>morin-farm-script.gs</strong> file, and save.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Deploy as Web App</strong><p>Click <code>Deploy</code> → <code>New deployment</code> → type: <code>Web app</code>. Set <strong>Execute as: Me</strong> and <strong>Access: Anyone</strong>. Deploy and authorize.</p></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><strong>Paste your Web App URL below</strong><p>Share the same URL with other family members — they paste it in their own Setup tab.</p></div></div>
+        <label style="margin-top:20px;">Google Apps Script Web App URL</label>
+        <div class="url-input-row">
+          <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/...">
+          <button class="save-url-btn" onclick="saveScriptUrl()">Save & Test</button>
+        </div>
+        <div id="urlStatus"></div>
+      </div>
+
+      <div class="settings-card">
+        <h2>🚀 Host on Netlify (for PWA features)</h2>
+        <p>To get the "Add to Home Screen" button and arrival notifications, the app needs to be hosted at a real URL. Netlify is free and takes about 5 minutes.</p>
+        <div class="deploy-card">
+          <h3>How to deploy to Netlify</h3>
+          <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Create a free Netlify account</strong><p>Go to <a href="https://netlify.com" target="_blank">netlify.com</a> and sign up with your Google account.</p></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Drag & drop your files</strong><p>Go to <a href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a> and drag the entire folder containing <code>index.html</code>, <code>manifest.json</code>, and <code>service-worker.js</code> into the drop zone.</p></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Get your URL</strong><p>Netlify gives you a free URL like <code>morin-farm-abc123.netlify.app</code>. Share that URL with the family — everyone visits it once and taps "Add to Home Screen."</p></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Optional: custom name</strong><p>In Netlify settings you can rename it to something like <code>morinfamilyfarm.netlify.app</code> for free.</p></div></div>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+</div>
 
 
 <!-- Lightbox -->
