@@ -625,6 +625,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('visitor').addEventListener('blur', e => {
     if (e.target.value) localStorage.setItem('morin_visitor_name', e.target.value);
   });
+
+  // Auto-close date picker on mobile when a date is selected
+  document.getElementById('visitDate').addEventListener('change', function() {
+    this.blur();
+  });
 });
 
 // ── Geolocation & Geofence ─────────────────────────────────────────────────
