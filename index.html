@@ -147,6 +147,31 @@
   .toggle-group input[type="radio"]:checked + .tog.na    { background: #bbb;          color: white; border-color: #bbb; }
 
   /* BEDS */
+  .bed-card { cursor: default; }
+  .bed-header { cursor: pointer; user-select: none; }
+  .bed-header:hover .bed-name { color: var(--green); }
+  .bed-expand-icon { margin-left: auto; font-size: 0.8rem; color: #bbb; transition: transform 0.2s; flex-shrink: 0; }
+  .bed-card.open .bed-expand-icon { transform: rotate(180deg); }
+  .bed-details { display: none; margin-top: 12px; border-top: 1px solid #e8e0d5; padding-top: 12px; }
+  .bed-card.open .bed-details { display: block; }
+  .bed-summary-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; min-height: 22px; }
+  .bsp { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .bsp.water-dry      { background: #fdecea; color: #c0392b; }
+  .bsp.water-moist    { background: #deeef9; color: var(--blue); }
+  .bsp.water-wet      { background: #d0e8f5; color: #1a6a9a; }
+  .bsp.health-excellent { background: #e8f3e6; color: var(--green); }
+  .bsp.health-good    { background: #eef7ec; color: #5a8a52; }
+  .bsp.health-stressed { background: #fff3cd; color: #856404; }
+  .bsp.health-poor    { background: #fdecea; color: #c0392b; }
+  .bsp.weeds-none     { background: #e8f3e6; color: var(--green); }
+  .bsp.weeds-few      { background: #fff3cd; color: #856404; }
+  .bsp.weeds-many     { background: #fdecea; color: #c0392b; }
+  .bsp.harvest-none   { background: #f0ece5; color: #aaa; }
+  .bsp.harvest-small  { background: #e8f3e6; color: var(--green); }
+  .bsp.harvest-medium { background: #c9e8c4; color: #3a6e33; }
+  .bsp.harvest-large  { background: #a8d8a0; color: #2a5626; }
+
+  /* BEDS */
   .beds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media(max-width:560px) { .beds-grid { grid-template-columns: 1fr; } }
 
@@ -705,44 +730,123 @@ function updateConnectionStatus() {
 }
 
 // ── Garden Beds ────────────────────────────────────────────────────────────
+function toggleBed(id) {
+  const card = document.getElementById('bedcard-' + id);
+  card.classList.toggle('open');
+}
+
 function buildBedsGrid() {
   document.getElementById('bedsGrid').innerHTML = BEDS.map(bed => `
-    <div class="bed-card">
-      <div class="bed-header">
+    <div class="bed-card" id="bedcard-${bed.id}">
+      <div class="bed-header" onclick="toggleBed(${bed.id})">
         <div class="bed-number">${bed.id}</div>
         <span class="bed-emoji">${bed.emoji}</span>
         <div class="bed-name">${bed.name}</div>
+        <span class="bed-expand-icon">▼</span>
       </div>
-      <div class="bed-actions">
-        <div class="bed-action-row">
-          <span class="bed-action-label">💧 Watered?</span>
-          <div class="toggle-group">
-            <input type="radio" name="bed${bed.id}_water" id="b${bed.id}w-yes" value="yes">
-            <label class="tog yes" for="b${bed.id}w-yes">Yes</label>
-            <input type="radio" name="bed${bed.id}_water" id="b${bed.id}w-no" value="no">
-            <label class="tog no" for="b${bed.id}w-no">No</label>
-            <input type="radio" name="bed${bed.id}_water" id="b${bed.id}w-na" value="na" checked>
-            <label class="tog na" for="b${bed.id}w-na">N/A</label>
+      <div class="bed-summary-pills" id="bsummary-${bed.id}"></div>
+      <div class="bed-details">
+        <div class="bed-actions">
+
+          <div class="bed-action-row">
+            <span class="bed-action-label">💧 Water Status</span>
+            <div class="toggle-group">
+              <input type="radio" name="bed${bed.id}_waterStatus" id="b${bed.id}ws-dry" value="dry">
+              <label class="tog issue" for="b${bed.id}ws-dry">Dry</label>
+              <input type="radio" name="bed${bed.id}_waterStatus" id="b${bed.id}ws-moist" value="moist" checked>
+              <label class="tog na" for="b${bed.id}ws-moist">Moist</label>
+              <input type="radio" name="bed${bed.id}_waterStatus" id="b${bed.id}ws-wet" value="wet">
+              <label class="tog yes" for="b${bed.id}ws-wet">Wet</label>
+            </div>
           </div>
-        </div>
-        <div class="bed-action-row">
-          <span class="bed-action-label">🌾 Harvested?</span>
-          <div class="toggle-group">
-            <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}h-yes" value="yes">
-            <label class="tog yes" for="b${bed.id}h-yes">Yes</label>
-            <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}h-no" value="no">
-            <label class="tog no" for="b${bed.id}h-no">No</label>
-            <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}h-na" value="na" checked>
-            <label class="tog na" for="b${bed.id}h-na">N/A</label>
+
+          <div class="bed-action-row">
+            <span class="bed-action-label">❤️ Plant Health</span>
+            <div class="toggle-group">
+              <input type="radio" name="bed${bed.id}_health" id="b${bed.id}ph-excellent" value="excellent" checked>
+              <label class="tog ok" for="b${bed.id}ph-excellent">Excellent</label>
+              <input type="radio" name="bed${bed.id}_health" id="b${bed.id}ph-good" value="good">
+              <label class="tog yes" for="b${bed.id}ph-good">Good</label>
+              <input type="radio" name="bed${bed.id}_health" id="b${bed.id}ph-stressed" value="stressed">
+              <label class="tog na" for="b${bed.id}ph-stressed">Stressed</label>
+              <input type="radio" name="bed${bed.id}_health" id="b${bed.id}ph-poor" value="poor">
+              <label class="tog issue" for="b${bed.id}ph-poor">Poor</label>
+            </div>
           </div>
+
+          <div class="bed-action-row">
+            <span class="bed-action-label">🌿 Weeds</span>
+            <div class="toggle-group">
+              <input type="radio" name="bed${bed.id}_weeds" id="b${bed.id}wd-none" value="none" checked>
+              <label class="tog ok" for="b${bed.id}wd-none">None</label>
+              <input type="radio" name="bed${bed.id}_weeds" id="b${bed.id}wd-few" value="few">
+              <label class="tog na" for="b${bed.id}wd-few">Few</label>
+              <input type="radio" name="bed${bed.id}_weeds" id="b${bed.id}wd-many" value="many">
+              <label class="tog issue" for="b${bed.id}wd-many">Many</label>
+            </div>
+          </div>
+
+          <div class="bed-action-row">
+            <span class="bed-action-label">🌾 Harvest</span>
+            <div class="toggle-group">
+              <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}hv-none" value="none" checked>
+              <label class="tog na" for="b${bed.id}hv-none">None</label>
+              <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}hv-small" value="small">
+              <label class="tog yes" for="b${bed.id}hv-small">Small</label>
+              <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}hv-medium" value="medium">
+              <label class="tog yes" for="b${bed.id}hv-medium">Medium</label>
+              <input type="radio" name="bed${bed.id}_harvest" id="b${bed.id}hv-large" value="large">
+              <label class="tog ok" for="b${bed.id}hv-large">Large</label>
+            </div>
+          </div>
+
+          <div class="bed-action-row">
+            <span class="bed-action-label">🐛 Pests</span>
+            <div class="toggle-group">
+              <input type="radio" name="bed${bed.id}_pests" id="b${bed.id}pe-none" value="none" checked>
+              <label class="tog ok" for="b${bed.id}pe-none">None</label>
+              <input type="radio" name="bed${bed.id}_pests" id="b${bed.id}pe-spotted" value="spotted">
+              <label class="tog na" for="b${bed.id}pe-spotted">Spotted</label>
+              <input type="radio" name="bed${bed.id}_pests" id="b${bed.id}pe-treated" value="treated">
+              <label class="tog yes" for="b${bed.id}pe-treated">Treated</label>
+            </div>
+          </div>
+
         </div>
-      </div>
-      <div class="bed-notes-area">
-        <span class="bed-notes-label">Notes</span>
-        <textarea id="bed${bed.id}_notes" placeholder="e.g. aphids spotted, ready to harvest next visit..."></textarea>
+        <div class="bed-notes-area">
+          <span class="bed-notes-label">Notes</span>
+          <textarea id="bed${bed.id}_notes" placeholder="e.g. aphids spotted, ready to harvest next visit..."></textarea>
+        </div>
       </div>
     </div>
   `).join('');
+
+  // Update summary pills when any toggle changes
+  BEDS.forEach(bed => {
+    ['waterStatus','health','weeds','harvest','pests'].forEach(field => {
+      document.querySelectorAll(`input[name="bed${bed.id}_${field}"]`).forEach(input => {
+        input.addEventListener('change', () => updateBedSummary(bed.id));
+      });
+    });
+    updateBedSummary(bed.id);
+  });
+}
+
+function updateBedSummary(bedId) {
+  const ws = getRadio('bed' + bedId + '_waterStatus');
+  const ph = getRadio('bed' + bedId + '_health');
+  const wd = getRadio('bed' + bedId + '_weeds');
+  const hv = getRadio('bed' + bedId + '_harvest');
+  const pe = getRadio('bed' + bedId + '_pests');
+
+  const pills = [];
+  if (ws && ws !== 'moist') pills.push(`<span class="bsp water-${ws}">💧 ${ws}</span>`);
+  if (ph && ph !== 'excellent') pills.push(`<span class="bsp health-${ph}">❤️ ${ph}</span>`);
+  if (wd && wd !== 'none') pills.push(`<span class="bsp weeds-${wd}">🌿 ${wd} weeds</span>`);
+  if (hv && hv !== 'none') pills.push(`<span class="bsp harvest-${hv}">🌾 ${hv} harvest</span>`);
+  if (pe && pe !== 'none') pills.push(`<span class="bsp health-${pe === 'treated' ? 'good' : 'stressed'}">🐛 pests ${pe}</span>`);
+
+  document.getElementById('bsummary-' + bedId).innerHTML = pills.join('');
 }
 
 // ── Issue rows ─────────────────────────────────────────────────────────────
@@ -779,8 +883,11 @@ async function submitReport(e) {
 
   const beds = BEDS.map(bed => ({
     id: bed.id, name: bed.name, emoji: bed.emoji,
-    watered: getRadio(`bed${bed.id}_water`),
-    harvested: getRadio(`bed${bed.id}_harvest`),
+    waterStatus: getRadio(`bed${bed.id}_waterStatus`),
+    health:      getRadio(`bed${bed.id}_health`),
+    weeds:       getRadio(`bed${bed.id}_weeds`),
+    harvest:     getRadio(`bed${bed.id}_harvest`),
+    pests:       getRadio(`bed${bed.id}_pests`),
     notes: document.getElementById(`bed${bed.id}_notes`).value.trim(),
   }));
 
@@ -958,17 +1065,30 @@ async function renderLog() {
           ${r.livestockNotes ? `<div style="font-size:0.88rem;color:#666;font-style:italic;">${r.livestockNotes}</div>` : ''}
         </div>` : '';
 
-      const activeBeds = beds.filter(b => b.watered !== 'na' || b.harvested !== 'na' || b.notes);
+      const activeBeds = beds.filter(b => b.waterStatus || b.health || b.weeds || (b.harvest && b.harvest !== 'none') || b.pests || b.notes || b.watered || b.harvested);
       const bedsHTML = activeBeds.length ? `
         <div class="report-section">
           <h4>🌱 Garden Beds</h4>
           <div class="bed-log-grid">
             ${activeBeds.map(b => {
-              const wPill = b.watered   === 'yes' ? `<span class="bli-pill watered">💧 Watered</span>`     : b.watered   === 'no' ? `<span class="bli-pill not-watered">Not watered</span>` : '';
-              const hPill = b.harvested === 'yes' ? `<span class="bli-pill harvested">🌾 Harvested</span>` : b.harvested === 'no' ? `<span class="bli-pill not-harvested">Not harvested</span>` : '';
+              const waterColor = b.waterStatus === 'dry' ? '#fdecea' : b.waterStatus === 'wet' ? '#d0e8f5' : '#deeef9';
+              const waterText  = b.waterStatus === 'dry' ? '#c0392b' : b.waterStatus === 'wet' ? '#1a6a9a' : '#2980b9';
+              const healthColor = b.health === 'excellent' ? '#e8f3e6' : b.health === 'good' ? '#eef7ec' : b.health === 'stressed' ? '#fff3cd' : b.health === 'poor' ? '#fdecea' : '#f0ece5';
+              const healthText  = b.health === 'excellent' ? '#4a6741' : b.health === 'good' ? '#5a8a52' : b.health === 'stressed' ? '#856404' : b.health === 'poor' ? '#c0392b' : '#aaa';
+              const weedColor  = b.weeds === 'none' ? '#e8f3e6' : b.weeds === 'few' ? '#fff3cd' : b.weeds === 'many' ? '#fdecea' : '#f0ece5';
+              const weedText   = b.weeds === 'none' ? '#4a6741' : b.weeds === 'few' ? '#856404' : b.weeds === 'many' ? '#c0392b' : '#aaa';
+              const harvColor  = b.harvest === 'none' || !b.harvest ? '#f0ece5' : b.harvest === 'small' ? '#e8f3e6' : b.harvest === 'medium' ? '#c9e8c4' : '#a8d8a0';
+              const harvText   = b.harvest === 'none' || !b.harvest ? '#aaa' : b.harvest === 'small' ? '#4a6741' : b.harvest === 'medium' ? '#3a6e33' : '#2a5626';
+              const pill = (bg, color, text) => `<span class="bli-pill" style="background:${bg};color:${color};">${text}</span>`;
               return `<div class="bed-log-item">
                 <div class="bli-name">${b.emoji} Bed ${b.id} · ${b.name}</div>
-                <div class="bli-pills">${wPill}${hPill}</div>
+                <div class="bli-pills">
+                  ${b.waterStatus ? pill(waterColor, waterText, '💧 ' + b.waterStatus) : ''}
+                  ${b.health      ? pill(healthColor, healthText, '❤️ ' + b.health) : ''}
+                  ${b.weeds       ? pill(weedColor, weedText, '🌿 ' + b.weeds + ' weeds') : ''}
+                  ${b.harvest && b.harvest !== 'none' ? pill(harvColor, harvText, '🌾 ' + b.harvest + ' harvest') : ''}
+                  ${b.pests && b.pests !== 'none' ? pill('#fff3cd', '#856404', '🐛 pests ' + b.pests) : ''}
+                </div>
                 ${b.notes ? `<div class="bli-notes">${b.notes}</div>` : ''}
               </div>`;
             }).join('')}
