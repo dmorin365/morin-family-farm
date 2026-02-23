@@ -953,7 +953,11 @@ async function renderLog() {
         <div class="report-section">
           <h4>📸 Photos (${photos.length})</h4>
           <div class="report-photos">
-            ${photos.map(p => `<div class="report-photo" onclick="openLightbox('${p.dataUrl}')"><img src="${p.dataUrl}" alt="${p.name}"></div>`).join('')}
+            ${photos.map(p => {
+              // Support both new Drive URL format {url, name} and legacy base64 {dataUrl, name}
+              const src = p.url || p.dataUrl || '';
+              return src ? `<div class="report-photo" onclick="openLightbox('${src}')"><img src="${src}" alt="${p.name || ''}" loading="lazy"></div>` : '';
+            }).join('')}
           </div>
         </div>` : '';
 
