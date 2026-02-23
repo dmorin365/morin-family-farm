@@ -597,8 +597,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
   buildBedsGrid();
 
-  const savedUrl = localStorage.getItem('morin_script_url') || '';
-  if (savedUrl) document.getElementById('scriptUrl').value = savedUrl;
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBTsB_ydVAflIFf5b0wpIlti7k3m2AA3iAI6KERBYnZ6i7La9TR_Hf6S04fhO5aVGe/exec';
+  if (!localStorage.getItem('morin_script_url')) {
+    localStorage.setItem('morin_script_url', SCRIPT_URL);
+  }
+  const savedUrl = localStorage.getItem('morin_script_url') || SCRIPT_URL;
+  document.getElementById('scriptUrl').value = savedUrl;
   updateConnectionStatus();
   updateSetupBanner();
 
