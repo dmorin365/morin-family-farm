@@ -229,6 +229,24 @@
   .flash.error   { background: var(--red);   color: white; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
 
+  /* GARDEN BED PROGRESSIVE DISCLOSURE in report log */
+  .bed-log-list { display: flex; flex-direction: column; gap: 6px; }
+  .bed-log-row { border: 1px solid #e8e0d5; border-radius: 6px; overflow: hidden; background: var(--cream); }
+  .bed-log-row.has-warning { border-color: #f0c040; }
+  .bed-log-row.has-alert   { border-color: var(--rust); }
+  .bed-log-headline { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; user-select: none; transition: background 0.15s; }
+  .bed-log-headline:hover { background: #f0ece5; }
+  .bed-log-hl-name { font-size: 0.88rem; font-weight: 700; flex-shrink: 0; min-width: 130px; }
+  .bed-log-hl-pills { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+  .bed-log-hl-chevron { font-size: 0.7rem; color: #ccc; transition: transform 0.2s; flex-shrink: 0; }
+  .bed-log-row.expanded .bed-log-hl-chevron { transform: rotate(180deg); }
+  .bed-log-detail { display: none; padding: 10px 14px 12px; border-top: 1px solid #e8e0d5; background: white; }
+  .bed-log-row.expanded .bed-log-detail { display: block; }
+  .bed-log-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-bottom: 6px; }
+  @media(max-width:480px) { .bed-log-detail-grid { grid-template-columns: 1fr; } }
+  .bed-log-detail-item { font-size: 0.82rem; color: #666; }
+  .bed-log-detail-item strong { color: var(--brown); display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+
   /* REPORT LOG */
   .report-card {
     background: white; border-radius: 4px; box-shadow: 0 2px 12px rgba(61,43,31,0.07);
@@ -1066,30 +1084,69 @@ async function renderLog() {
         </div>` : '';
 
       const activeBeds = beds.filter(b => b.waterStatus || b.health || b.weeds || (b.harvest && b.harvest !== 'none') || b.pests || b.notes || b.watered || b.harvested);
+
+      // Helper: get alert level for a bed (none / warning / alert)
+      const bedAlert = b => {
+        if (b.health === 'poor' || b.weeds === 'many' || b.waterStatus === 'dry' || b.pests === 'spotted') return 'has-alert';
+        if (b.health === 'stressed' || b.weeds === 'few' || b.waterStatus === 'wet' || b.pests === 'treated') return 'has-warning';
+        return '';
+      };
+
+      // Helper: inline pill for headline
+      const hlPill = (bg, color, text) => `<span class="bli-pill" style="background:${bg};color:${color};font-size:0.65rem;">${text}</span>`;
+
+      const bedRowId = (reportIdx, bedId) => `bedrow-${reportIdx}-${bedId}`;
+
       const bedsHTML = activeBeds.length ? `
         <div class="report-section">
-          <h4>🌱 Garden Beds</h4>
-          <div class="bed-log-grid">
-            ${activeBeds.map(b => {
-              const waterColor = b.waterStatus === 'dry' ? '#fdecea' : b.waterStatus === 'wet' ? '#d0e8f5' : '#deeef9';
-              const waterText  = b.waterStatus === 'dry' ? '#c0392b' : b.waterStatus === 'wet' ? '#1a6a9a' : '#2980b9';
-              const healthColor = b.health === 'excellent' ? '#e8f3e6' : b.health === 'good' ? '#eef7ec' : b.health === 'stressed' ? '#fff3cd' : b.health === 'poor' ? '#fdecea' : '#f0ece5';
-              const healthText  = b.health === 'excellent' ? '#4a6741' : b.health === 'good' ? '#5a8a52' : b.health === 'stressed' ? '#856404' : b.health === 'poor' ? '#c0392b' : '#aaa';
-              const weedColor  = b.weeds === 'none' ? '#e8f3e6' : b.weeds === 'few' ? '#fff3cd' : b.weeds === 'many' ? '#fdecea' : '#f0ece5';
-              const weedText   = b.weeds === 'none' ? '#4a6741' : b.weeds === 'few' ? '#856404' : b.weeds === 'many' ? '#c0392b' : '#aaa';
-              const harvColor  = b.harvest === 'none' || !b.harvest ? '#f0ece5' : b.harvest === 'small' ? '#e8f3e6' : b.harvest === 'medium' ? '#c9e8c4' : '#a8d8a0';
-              const harvText   = b.harvest === 'none' || !b.harvest ? '#aaa' : b.harvest === 'small' ? '#4a6741' : b.harvest === 'medium' ? '#3a6e33' : '#2a5626';
-              const pill = (bg, color, text) => `<span class="bli-pill" style="background:${bg};color:${color};">${text}</span>`;
-              return `<div class="bed-log-item">
-                <div class="bli-name">${b.emoji} Bed ${b.id} · ${b.name}</div>
-                <div class="bli-pills">
-                  ${b.waterStatus ? pill(waterColor, waterText, '💧 ' + b.waterStatus) : ''}
-                  ${b.health      ? pill(healthColor, healthText, '❤️ ' + b.health) : ''}
-                  ${b.weeds       ? pill(weedColor, weedText, '🌿 ' + b.weeds + ' weeds') : ''}
-                  ${b.harvest && b.harvest !== 'none' ? pill(harvColor, harvText, '🌾 ' + b.harvest + ' harvest') : ''}
-                  ${b.pests && b.pests !== 'none' ? pill('#fff3cd', '#856404', '🐛 pests ' + b.pests) : ''}
+          <h4>🌱 Garden Beds <span style="font-size:0.7rem;color:#bbb;font-weight:400;font-style:italic;">(tap a bed for details)</span></h4>
+          <div class="bed-log-list">
+            ${activeBeds.map((b, bi) => {
+              const rowId = 'bedrow-' + Date.now() + '-' + b.id;
+              const alert = bedAlert(b);
+
+              // Headline pills — only show problems + harvest
+              const headlinePills = [];
+              if (b.waterStatus === 'dry') headlinePills.push(hlPill('#fdecea','#c0392b','💧 Dry'));
+              if (b.waterStatus === 'wet') headlinePills.push(hlPill('#d0e8f5','#1a6a9a','💧 Wet'));
+              if (b.waterStatus === 'moist') headlinePills.push(hlPill('#deeef9','#2980b9','💧 Moist'));
+              if (b.health && b.health !== 'excellent') headlinePills.push(
+                hlPill(b.health==='good'?'#eef7ec':b.health==='stressed'?'#fff3cd':'#fdecea',
+                       b.health==='good'?'#5a8a52':b.health==='stressed'?'#856404':'#c0392b',
+                       '❤️ ' + b.health)
+              );
+              if (b.weeds && b.weeds !== 'none') headlinePills.push(
+                hlPill(b.weeds==='few'?'#fff3cd':'#fdecea', b.weeds==='few'?'#856404':'#c0392b','🌿 ' + b.weeds + ' weeds')
+              );
+              if (b.harvest && b.harvest !== 'none') headlinePills.push(
+                hlPill(b.harvest==='small'?'#e8f3e6':b.harvest==='medium'?'#c9e8c4':'#a8d8a0',
+                       b.harvest==='small'?'#4a6741':b.harvest==='medium'?'#3a6e33':'#2a5626',
+                       '🌾 ' + b.harvest)
+              );
+              if (b.pests && b.pests !== 'none') headlinePills.push(hlPill('#fff3cd','#856404','🐛 pests ' + b.pests));
+
+              // Detail rows
+              const details = [
+                b.waterStatus ? ['💧 Water',    b.waterStatus] : null,
+                b.health      ? ['❤️ Health',   b.health]      : null,
+                b.weeds       ? ['🌿 Weeds',    b.weeds]       : null,
+                b.harvest     ? ['🌾 Harvest',  b.harvest]     : null,
+                b.pests       ? ['🐛 Pests',    b.pests]       : null,
+              ].filter(Boolean);
+
+              return `<div class="bed-log-row ${alert}" id="${rowId}">
+                <div class="bed-log-headline" onclick="this.closest('.bed-log-row').classList.toggle('expanded')">
+                  <span style="font-size:1rem;">${b.emoji}</span>
+                  <span class="bed-log-hl-name">${b.name}</span>
+                  <span class="bed-log-hl-pills">${headlinePills.join('')}</span>
+                  <span class="bed-log-hl-chevron">▼</span>
                 </div>
-                ${b.notes ? `<div class="bli-notes">${b.notes}</div>` : ''}
+                <div class="bed-log-detail">
+                  <div class="bed-log-detail-grid">
+                    ${details.map(([label, val]) => `<div class="bed-log-detail-item"><strong>${label}</strong>${val}</div>`).join('')}
+                  </div>
+                  ${b.notes ? `<div class="bli-notes" style="margin-top:4px;">📝 ${b.notes}</div>` : ''}
+                </div>
               </div>`;
             }).join('')}
           </div>
