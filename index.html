@@ -896,7 +896,7 @@ async function renderLog() {
     container.innerHTML = reports.map(r => {
       let beds = [];   try { beds   = JSON.parse(r.beds   || '[]'); } catch(e) {}
       let issues = []; try { issues = JSON.parse(r.issues || '[]'); } catch(e) {}
-      let photos = []; try { photos = JSON.parse(r.photos || '[]'); } catch(e) {}
+      let photos = []; try { photos = JSON.parse(r.photosjson || r.photos || '[]'); } catch(e) {}
       const hasIssues = issues.length > 0;
 
       const issueHTML = issues.length ? `
