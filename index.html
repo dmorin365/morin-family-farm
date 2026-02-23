@@ -341,7 +341,6 @@
 <nav>
   <button class="active" onclick="switchTab('report', this)">📋 Report</button>
   <button onclick="switchTab('log', this)">📖 Reports</button>
-  <button onclick="switchTab('setup', this)">⚙️ Setup</button>
 </nav>
 
 <main>
@@ -351,7 +350,7 @@
     <div id="flash" class="flash"></div>
     <div id="setupBanner" style="display:none;">
       <span>⚠️</span>
-      <div>Reports aren't syncing yet. Go to the <strong>Setup tab</strong> to connect your Google Sheet.</div>
+      <div>Reports aren't syncing yet. Scroll to the bottom of the page and tap <strong>Admin Setup</strong>.</div>
     </div>
 
     <form id="reportForm" onsubmit="submitReport(event)">
@@ -482,8 +481,13 @@
     <div id="reportLog"><div class="loading">Loading reports</div></div>
   </div>
 
-  <!-- ── SETUP TAB ── -->
-  <div id="tab-setup" class="tab-content">
+  <!-- Setup link at bottom of page -->
+
+</main>
+</div>
+
+<!-- Setup section (hidden by default, revealed by clicking the small link) -->
+<div id="setupSection" style="display:none; max-width:860px; margin:0 auto; padding:20px;">
 
     <!-- Location & Notifications -->
     <div class="settings-card">
@@ -494,9 +498,7 @@
       <button class="perm-btn" onclick="requestLocation()">Enable Location Access</button>
       <br><br>
       <p style="font-size:0.82rem;color:#aaa;margin-bottom:0;">The farm is set to <strong>34.39917, -82.94344</strong>. The app will greet you when you're within ½ mile.</p>
-    </div>
-
-    <!-- Google Sheets -->
+      <!-- Google Sheets -->
     <div class="settings-card">
       <h2>🔗 Connect to Google Sheets</h2>
       <p>One-time setup — any family member can do it. Reports sync to your shared Google Sheet.</p>
@@ -514,9 +516,7 @@
         <button class="save-url-btn" onclick="saveScriptUrl()">Save & Test</button>
       </div>
       <div id="urlStatus"></div>
-    </div>
-
-    <!-- Deploy to Netlify -->
+      <!-- Deploy to Netlify -->
     <div class="settings-card">
       <h2>🚀 Host on Netlify (for PWA features)</h2>
       <p>To get the "Add to Home Screen" button and arrival notifications, the app needs to be hosted at a real URL. Netlify is free and takes about 5 minutes.</p>
@@ -527,12 +527,16 @@
         <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Get your URL</strong><p>Netlify gives you a free URL like <code>morin-farm-abc123.netlify.app</code>. Share that URL with the family — everyone visits it once and taps "Add to Home Screen."</p></div></div>
         <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Optional: custom name</strong><p>In Netlify settings you can rename it to something like <code>morinfamilyfarm.netlify.app</code> for free.</p></div></div>
       </div>
-    </div>
-
-  </div>
-
-</main>
+  
 </div>
+
+<footer style="text-align:center; padding:24px 20px 40px; border-top:2px solid #e0d8ce; margin-top:8px; background:#f5f0e8;">
+  <button onclick="document.getElementById('setupSection').style.display = document.getElementById('setupSection').style.display === 'none' ? 'block' : 'none'" 
+    style="background:#3d2b1f; border:none; color:#d4b896; font-size:0.8rem; font-family:'Lato',sans-serif; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; padding:10px 20px; border-radius:3px; font-weight:700;">
+    ⚙️ Admin Setup
+  </button>
+</footer>
+
 
 <!-- Lightbox -->
 <div id="lightbox" onclick="closeLightbox()">
