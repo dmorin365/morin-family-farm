@@ -837,7 +837,19 @@ function showFlash(msg, type) {
 // ── Render Log ─────────────────────────────────────────────────────────────
 function formatDate(str) {
   if (!str) return '';
-  const d = new Date(str + 'T12:00:00');
+  // Handle multiple formats: YYYY-MM-DD, M/D/YYYY, MM/DD/YYYY
+  let d;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str.trim())) {
+    // Standard ISO format from the form: YYYY-MM-DD
+    d = new Date(str.trim() + 'T12:00:00');
+  } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str.trim())) {
+    // US format from Google Sheets: M/D/YYYY or MM/DD/YYYY
+    const [m, day, yr] = str.trim().split('/');
+    d = new Date(yr, m - 1, day);
+  } else {
+    d = new Date(str);
+  }
+  if (isNaN(d)) return str;
   return d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 }
 
