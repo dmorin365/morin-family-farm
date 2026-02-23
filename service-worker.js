@@ -3,7 +3,7 @@
 //  Handles: offline caching, push notifications, geofence alerts
 // ============================================================
 
-const CACHE_NAME = 'morin-farm-v1';
+const CACHE_NAME = 'morin-farm-v2';
 const FARM_LAT = 34.39917;   // Morin Family Farm
 const FARM_LNG = -82.94344;
 const GEOFENCE_RADIUS_MILES = 0.5;
@@ -35,6 +35,12 @@ self.addEventListener('activate', event => {
 
 // ── Fetch: serve from cache, fall back to network ─────────────────────────
 self.addEventListener('fetch', event => {
+  // Don't intercept external requests (e.g. Google Apps Script, fonts, APIs)
+  // iOS Safari will fail if the service worker tries to proxy cross-origin fetches
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );
