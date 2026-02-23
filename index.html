@@ -893,18 +893,10 @@ async function renderLog() {
       return;
     }
 
-    // DEBUG: log all keys from first report to console
-    if (reports.length > 0) {
-      const r0 = reports[0];
-      const photoKeys = Object.keys(r0).filter(k => k.toLowerCase().includes('photo'));
-      console.log('DEBUG photo keys:', JSON.stringify(photoKeys));
-      photoKeys.forEach(k => console.log('DEBUG', k, '=', String(r0[k]).slice(0, 300)));
-    }
-
     container.innerHTML = reports.map(r => {
       let beds = [];   try { beds   = JSON.parse(r.beds   || '[]'); } catch(e) {}
       let issues = []; try { issues = JSON.parse(r.issues || '[]'); } catch(e) {}
-      let photos = []; try { photos = JSON.parse(r.photosjson || r.photos || '[]'); } catch(e) {}
+      let photos = []; try { photos = JSON.parse(r.photosJson || r.photosjson || r.photos || '[]'); } catch(e) {}
       const hasIssues = issues.length > 0;
 
       const issueHTML = issues.length ? `
